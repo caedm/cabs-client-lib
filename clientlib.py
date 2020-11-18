@@ -2,6 +2,7 @@ import subprocess
 import os
 import socket, ssl
 from os.path import isfile
+from ast import literal_eval
 import json
 
 class Clientlib:
@@ -28,7 +29,6 @@ class Clientlib:
                     try:
                         (key,val) = line.split(':\t',1)
                     except:
-    #                    print("Warning : Check .conf syntax")
                         try:
                             (key,val) = line.split(None,1)
                             key = key[:-1]
@@ -68,17 +68,17 @@ class Clientlib:
         return True
 
     def getPools(self, user, password, host, port, retry=0):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, port))
+        print("getting pools")
         # add the version check into the pool request. 
         if self.settings.get("RGS_Version") == True:
             content = json.dumps(['prv', user, password, getRGSversion()]) + '\r\n'
         else:
             content = json.dumps(['pr', user, password]) + '\r\n'
         # read message and save connection socket
+        print(content)
         s_wrapped = self.send_message(content, host, port)
         pools = self.read_response(s_wrapped, lambda: self.getPools(user, password, host, port, retry+1))
-        
+        print(pools)
         poolsliterals = pools.split('\n')
         poolset = set()
         for literal in poolsliterals:
@@ -89,20 +89,24 @@ class Clientlib:
     def getMachine(self, user, password, pool, host, port, retry=0):
         if pool == '' or pool is None:
             return ''
-        s_wrapped = self.send_message(s_wrapped, host, port)
+        content = json.dumps(['mr', user, password, pool]) + '\r\n'
+        s_wrapped = self.send_message(content, host, port)
         return self.read_response(s_wrapped, lambda: self.getMachine(user,password,pool,host,retry+1))
 
     def send_message(self, message, host, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("host: ", host)
+        print('port: ', port)
         s.connect((host, port))
-
+        print('heree')
         if (self.settings.get("SSL_Cert") is None) or (self.settings.get("SSL_Cert") == 'None'):
             s_wrapped = s
         else:
             ssl_cert = self.base_file_path + "/" + self.settings.get("SSL_Cert")
+            print(ssl_cert)
             s_wrapped = ssl.wrap_socket(s, cert_reqs=ssl.CERT_REQUIRED, ca_certs=ssl_cert, ssl_version=ssl.PROTOCOL_SSLv23)
-
-        s_wrapped.sendall(message.encode)
+        
+        s_wrapped.sendall(message.encode())
         return s_wrapped
 
     def read_response(self, sock, callback):
