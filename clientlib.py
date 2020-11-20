@@ -68,17 +68,14 @@ class Clientlib:
         return True
 
     def getPools(self, user, password, host, port, retry=0):
-        print("getting pools")
         # add the version check into the pool request. 
         if self.settings.get("RGS_Version") == True:
             content = json.dumps(['prv', user, password, getRGSversion()]) + '\r\n'
         else:
             content = json.dumps(['pr', user, password]) + '\r\n'
         # read message and save connection socket
-        print(content)
         s_wrapped = self.send_message(content, host, port)
-        pools = self.read_response(s_wrapped, lambda: self.getPools(user, password, host, port, retry+1))
-        print(pools)
+        pools = self.read_response(s_wrapped, retry, lambda: self.getPools(user, password, host, port, retry+1))
         poolsliterals = pools.split('\n')
         poolset = set()
         for literal in poolsliterals:
@@ -91,12 +88,11 @@ class Clientlib:
             return ''
         content = json.dumps(['mr', user, password, pool]) + '\r\n'
         s_wrapped = self.send_message(content, host, port)
-        return self.read_response(s_wrapped, lambda: self.getMachine(user,password,pool,host,retry+1))
+        return self.read_response(s_wrapped, retry, lambda: self.getMachine(user,password,pool,host,retry+1))
 
     def send_message(self, message, host, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("host: ", host)
-        print('port: ', port)
+      
         s.connect((host, port))
         print('heree')
         if (self.settings.get("SSL_Cert") is None) or (self.settings.get("SSL_Cert") == 'None'):
@@ -109,7 +105,7 @@ class Clientlib:
         s_wrapped.sendall(message.encode())
         return s_wrapped
 
-    def read_response(self, sock, callback):
+    def read_response(self, sock, retry, callback):
         response = ""
         while True:
             chunk = sock.recv(1024).decode()
