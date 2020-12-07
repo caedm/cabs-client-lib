@@ -119,3 +119,7 @@ class Clientlib:
             else:
                 raise ServerError(response)
         return response
+
+    def check_file(path_to_file):
+        return os.path.isfile(patpath_to_fileh)
+
