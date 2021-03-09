@@ -23,29 +23,3 @@ class ClientReq:
         self.request_type = request_type
         self.username = username
         self.password = password
-
-# class RequestEncoder(JSONEncoder):
-#     def default(self, o):
-#         return o.__dict__
-        
-# def requestDecode(request_dict):
-#     return namedtuple('_', request_dict.keys())(*request_dict.values())
-
-
-# pr = PoolReq("1.0", "mac_rgs_connect", "1.3")
-# cr = ClientReq(pr, "pr")
-# reqJson = json.dumps(cr, indent=4,cls=RequestEncoder)
-# print(reqJson)
-# reqObj = json.loads(reqJson, object_hook=requestDecode)
-# print(reqObj.request_type, reqObj.request.client_name)
-
-# example usage
-'''
-req = ClientReq('1.123', 'mac_labconnect', ['ssh', 'rgs', 'rdp'], 'pr', '1.1')
-
-// req to json string
-reqJson = json.dumps(req,indent=4,cls=ClientReqEncoder)
-
-// reqJson back to object
-reqObj = json.loads(reqJson, object_hook=decodeClientReq)
-'''
